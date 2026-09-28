@@ -152,3 +152,18 @@ def test_redis_url_with_password_flagged():
     text = 'CACHE_URL = "redis://user:r3d1sp@ss@cache.internal:6379/0"'
     findings = scan_text(text, "settings.py", CFG)
     assert any(f.rule_id == "SEC-004" for f in findings)
+
+
+# --- Redaction, filtering and file selection ---
+
+def test_match_is_redacted_by_default():
+    findings = scan_text('aws_access_key_id = "AKIAIOSFODNN7EXAMPLE"', "config.py", CFG)
+    assert findings and "AKIAIOSFODNN7EXAMPLE" not in findings[0].match
+
+
+def test_run_all_respects_min_severity_and_dotenv(tmp_path):
+    from scanner.rules import run_all
+    (tmp_path / ".env").write_text("AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\n")
+    (tmp_path / "app.py").write_text('api_key = "sk-abcdefghij1234567890"\n')
+    findings = run_all([str(tmp_path)], ScanConfig(min_severity="HIGH"))
+    assert [f.rule_id for f in findings] == ["SEC-001"]
