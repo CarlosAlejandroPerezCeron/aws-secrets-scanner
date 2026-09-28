@@ -12,6 +12,10 @@ Static scanner for hardcoded credentials: AWS keys, private keys, passwords, DB 
 | SEC-004 | HIGH | Database connection string with credentials |
 | SEC-005 | MEDIUM | API key or token assigned inline |
 
+## Behavior
+
+Matched secrets are redacted in every output format by default (first 4 characters kept). `.env` and `.env.*` files are scanned; `.git`, `node_modules` and virtualenv folders are skipped. `--min-severity` filters results.
+
 ## Install
 
 ```bash
